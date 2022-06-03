@@ -8,6 +8,7 @@ import (
 	"golang-clean-architecture/service"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
@@ -35,6 +36,7 @@ func main() {
 	// Setup Fiber
 	app := fiber.New(config.NewFiberConfig())
 	app.Use(recover.New())
+	app.Use(logger.New())
 
 	// Setup Routing
 	productController.Route(app)
