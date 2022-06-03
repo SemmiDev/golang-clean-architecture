@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
 	"golang-clean-architecture/exception"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Config interface {

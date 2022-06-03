@@ -1,19 +1,16 @@
 package controller
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"golang-clean-architecture/exception"
 	"golang-clean-architecture/model"
-	"golang-clean-architecture/service"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type ProductController struct {
-	ProductService service.ProductService
-}
-
-func NewProductController(productService *service.ProductService) ProductController {
-	return ProductController{ProductService: *productService}
+	CreateProduct func(request model.CreateProductRequest) (response model.CreateProductResponse)
+	ListProducts  func() (responses []model.GetProductResponse)
 }
 
 func (controller *ProductController) Route(app *fiber.App) {
@@ -28,7 +25,7 @@ func (controller *ProductController) Create(c *fiber.Ctx) error {
 
 	exception.PanicIfNeeded(err)
 
-	response := controller.ProductService.Create(request)
+	response := controller.CreateProduct(request)
 	return c.JSON(model.WebResponse{
 		Code:   200,
 		Status: "OK",
@@ -37,7 +34,7 @@ func (controller *ProductController) Create(c *fiber.Ctx) error {
 }
 
 func (controller *ProductController) List(c *fiber.Ctx) error {
-	responses := controller.ProductService.List()
+	responses := controller.ListProducts()
 	return c.JSON(model.WebResponse{
 		Code:   200,
 		Status: "OK",

@@ -3,13 +3,14 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"golang-clean-architecture/entity"
 	"golang-clean-architecture/model"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestProductController_Create(t *testing.T) {

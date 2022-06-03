@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/recover"
 	"golang-clean-architecture/config"
 	"golang-clean-architecture/repository"
 	"golang-clean-architecture/service"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 func createTestApp() *fiber.App {
@@ -19,8 +20,15 @@ var configuration = config.New("../.env.test")
 
 var database = config.NewMongoDatabase(configuration)
 var productRepository = repository.NewProductRepository(database)
-var productService = service.NewProductService(&productRepository)
+var productService = &service.ProductService{
+	Insert:    productRepository.Insert,
+	FindAll:   productRepository.FindAll,
+	DeleteAll: productRepository.DeleteAll,
+}
 
-var productController = NewProductController(&productService)
+var productController = &ProductController{
+	CreateProduct: productService.Create,
+	ListProducts:  productService.List,
+}
 
 var app = createTestApp()
