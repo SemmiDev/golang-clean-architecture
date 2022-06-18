@@ -2,31 +2,24 @@ package config
 
 import (
 	"context"
+	"golang-clean-architecture/exception"
+	"time"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang-clean-architecture/exception"
-	"strconv"
-	"time"
 )
 
-func NewMongoDatabase(configuration Config) *mongo.Database {
+func NewMongoDatabase(cfg Config) *mongo.Database {
 	ctx, cancel := NewMongoContext()
 	defer cancel()
 
-	mongoPoolMin, err := strconv.Atoi(configuration.Get("MONGO_POOL_MIN"))
-	exception.PanicIfNeeded(err)
-
-	mongoPoolMax, err := strconv.Atoi(configuration.Get("MONGO_POOL_MAX"))
-	exception.PanicIfNeeded(err)
-
-	mongoMaxIdleTime, err := strconv.Atoi(configuration.Get("MONGO_MAX_IDLE_TIME_SECOND"))
-	exception.PanicIfNeeded(err)
+	duration := time.Duration(cfg.MongoMaxIdleTime) * time.Second
 
 	option := options.Client().
-		ApplyURI(configuration.Get("MONGO_URI")).
-		SetMinPoolSize(uint64(mongoPoolMin)).
-		SetMaxPoolSize(uint64(mongoPoolMax)).
-		SetMaxConnIdleTime(time.Duration(mongoMaxIdleTime) * time.Second)
+		ApplyURI(cfg.MongoURI).
+		SetMinPoolSize(cfg.MongoPoolMin).
+		SetMaxPoolSize(cfg.MongoPoolMax).
+		SetMaxConnIdleTime(duration)
 
 	client, err := mongo.NewClient(option)
 	exception.PanicIfNeeded(err)
@@ -34,7 +27,7 @@ func NewMongoDatabase(configuration Config) *mongo.Database {
 	err = client.Connect(ctx)
 	exception.PanicIfNeeded(err)
 
-	database := client.Database(configuration.Get("MONGO_DATABASE"))
+	database := client.Database(cfg.MongoDB)
 	return database
 }
 

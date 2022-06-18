@@ -13,35 +13,30 @@ import (
 )
 
 func main() {
-	// Setup Configuration
-	configuration := config.New()
-	database := config.NewMongoDatabase(configuration)
+	cfg, err := config.LoadConfig(".")
+	exception.PanicIfNeeded(err)
 
-	// Setup Repository
+	database := config.NewMongoDatabase(cfg)
+
 	productRepository := repository.NewProductRepository(database)
 
-	// Setup Service
 	productService := &service.ProductService{
 		Insert:    productRepository.Insert,
 		FindAll:   productRepository.FindAll,
 		DeleteAll: productRepository.DeleteAll,
 	}
 
-	// Setup Controller
 	productController := &controller.ProductController{
 		CreateProduct: productService.Create,
 		ListProducts:  productService.List,
 	}
 
-	// Setup Fiber
 	app := fiber.New(config.NewFiberConfig())
 	app.Use(recover.New())
 	app.Use(logger.New())
 
-	// Setup Routing
 	productController.Route(app)
 
-	// Start App
-	err := app.Listen(":3000")
+	err = app.Listen(":3030")
 	exception.PanicIfNeeded(err)
 }

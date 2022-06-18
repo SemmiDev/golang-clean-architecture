@@ -1,25 +1,29 @@
 package config
 
 import (
-	"golang-clean-architecture/exception"
-	"os"
-
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
-type Config interface {
-	Get(key string) string
+type Config struct {
+	MongoURI         string `mapstructure:"MONGO_URI"`
+	MongoDB          string `mapstructure:"MONGO_DATABASE"`
+	MongoPoolMin     uint64 `mapstructure:"MONGO_POOL_MIN"`
+	MongoPoolMax     uint64 `mapstructure:"MONGO_POOL_MAX"`
+	MongoMaxIdleTime int64  `mapstructure:"MONGO_MAX_IDLE_TIME_SECOND"`
 }
 
-type configImpl struct {
-}
+func LoadConfig(path string) (config Config, err error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigName("app")
+	viper.SetConfigType("env")
 
-func (config *configImpl) Get(key string) string {
-	return os.Getenv(key)
-}
+	viper.AutomaticEnv()
 
-func New(filenames ...string) Config {
-	err := godotenv.Load(filenames...)
-	exception.PanicIfNeeded(err)
-	return &configImpl{}
+	err = viper.ReadInConfig()
+	if err != nil {
+		return
+	}
+
+	err = viper.Unmarshal(&config)
+	return
 }

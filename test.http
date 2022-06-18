@@ -1,10 +1,10 @@
 ### Get All Products
 
-GET http://localhost:3000/api/products
+GET http://localhost:80/api/products
 Accept: application/json
 
 ### Create New Product
-POST http://localhost:3000/api/products
+POST http://localhost:80/api/products
 Content-Type: application/json
 Accept: application/json
 

@@ -1,6 +1,7 @@
-version: '3.5'
+version: '3.9'
 
 services:
+
   golang-mongo:
     container_name: golang-mongo
     image: mongo:4.4
@@ -9,3 +10,47 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongo
       MONGO_INITDB_ROOT_PASSWORD: mongo
+    volumes:
+      - ./data/mongo:/data/db
+    networks:
+      - myapp
+
+  api:
+    build: .
+    ports:
+      - 3030
+    restart: always
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - MONGO_URI=mongodb://mongo:mongo@golang-mongo:27017
+      - MONGO_DATABASE=golang
+      - MONGO_POOL_MIN=10
+      - MONGO_POOL_MAX=100
+      - MONGO_MAX_IDLE_TIME_SECOND=60
+    env_file:
+      - app.env
+    depends_on:
+      - golang-mongo
+    deploy:
+      mode: replicated
+      replicas: 15
+      restart_policy:
+        condition: on-failure
+    networks:
+      - myapp
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on: 
+      - api
+    ports: 
+      - "80:80"
+    networks:
+      - myapp
+
+networks:
+  myapp:
+    driver: bridge
