@@ -32,11 +32,5 @@ jobs:
         mongodb-username: mongo 
         mongodb-password: mongo
         
-    - name: Build Docker image
-      uses: docker/build-push-action@v2
-      with:
-        push: false
-        tags: ${{ github.event.repository.name }}:latest, ${{ github.repository }}:latest
-
     - name: Test
       run: go test -v ./...
