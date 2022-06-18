@@ -6,6 +6,7 @@ import (
 
 type Config struct {
 	MongoURI         string `mapstructure:"MONGO_URI"`
+	MongoURITest     string `mapstructure:"MONGO_URI_TEST"`
 	MongoDB          string `mapstructure:"MONGO_DATABASE"`
 	MongoPoolMin     uint64 `mapstructure:"MONGO_POOL_MIN"`
 	MongoPoolMax     uint64 `mapstructure:"MONGO_POOL_MAX"`

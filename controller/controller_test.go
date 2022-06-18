@@ -16,9 +16,9 @@ func createTestApp() *fiber.App {
 	return app
 }
 
-var configuration, _ = config.LoadConfig("../app.env")
+var configuration, _ = config.LoadConfig("../")
 
-var database = config.NewMongoDatabase(configuration)
+var database = config.NewMongoDatabase(configuration, "test")
 var productRepository = repository.NewProductRepository(database)
 var productService = &service.ProductService{
 	Insert:    productRepository.Insert,

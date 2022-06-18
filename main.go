@@ -16,7 +16,7 @@ func main() {
 	cfg, err := config.LoadConfig(".")
 	exception.PanicIfNeeded(err)
 
-	database := config.NewMongoDatabase(cfg)
+	database := config.NewMongoDatabase(cfg, "prod")
 
 	productRepository := repository.NewProductRepository(database)
 

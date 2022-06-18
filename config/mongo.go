@@ -9,17 +9,27 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func NewMongoDatabase(cfg Config) *mongo.Database {
+func NewMongoDatabase(cfg Config, env string) *mongo.Database {
 	ctx, cancel := NewMongoContext()
 	defer cancel()
 
 	duration := time.Duration(cfg.MongoMaxIdleTime) * time.Second
 
-	option := options.Client().
-		ApplyURI(cfg.MongoURI).
-		SetMinPoolSize(cfg.MongoPoolMin).
-		SetMaxPoolSize(cfg.MongoPoolMax).
-		SetMaxConnIdleTime(duration)
+	var option *options.ClientOptions
+
+	if env == "test" {
+		option = options.Client().
+			ApplyURI(cfg.MongoURITest).
+			SetMinPoolSize(cfg.MongoPoolMin).
+			SetMaxPoolSize(cfg.MongoPoolMax).
+			SetMaxConnIdleTime(duration)
+	} else {
+		option = options.Client().
+			ApplyURI(cfg.MongoURI).
+			SetMinPoolSize(cfg.MongoPoolMin).
+			SetMaxPoolSize(cfg.MongoPoolMax).
+			SetMaxConnIdleTime(duration)
+	}
 
 	client, err := mongo.NewClient(option)
 	exception.PanicIfNeeded(err)
