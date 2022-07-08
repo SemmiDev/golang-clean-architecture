@@ -3,16 +3,19 @@ package service
 import (
 	"golang-clean-architecture/entity"
 	"golang-clean-architecture/model"
+	"golang-clean-architecture/repository"
 	"golang-clean-architecture/validation"
 )
 
-type ProductService struct {
-	Insert    func(product entity.Product)
-	FindAll   func() (products []entity.Product)
-	DeleteAll func()
+type ProductServiceImpl struct {
+	PR repository.ProductRepository
 }
 
-func (service *ProductService) Create(request model.CreateProductRequest) (response model.CreateProductResponse) {
+func NewProductService(pr repository.ProductRepository) *ProductServiceImpl {
+	return &ProductServiceImpl{PR: pr}
+}
+
+func (service *ProductServiceImpl) Create(request model.CreateProductRequest) (response model.CreateProductResponse) {
 	validation.Validate(request)
 
 	product := entity.Product{
@@ -22,7 +25,7 @@ func (service *ProductService) Create(request model.CreateProductRequest) (respo
 		Quantity: request.Quantity,
 	}
 
-	service.Insert(product)
+	service.PR.Insert(product)
 
 	response = model.CreateProductResponse{
 		Id:       product.Id,
@@ -33,15 +36,23 @@ func (service *ProductService) Create(request model.CreateProductRequest) (respo
 	return response
 }
 
-func (service *ProductService) List() (responses []model.GetProductResponse) {
-	products := service.FindAll()
-	for _, product := range products {
-		responses = append(responses, model.GetProductResponse{
-			Id:       product.Id,
-			Name:     product.Name,
-			Price:    product.Price,
-			Quantity: product.Quantity,
-		})
-	}
-	return responses
+func (service *ProductServiceImpl) List() <-chan []model.GetProductResponse {
+	responsesCh := make(chan []model.GetProductResponse)
+
+	go func() {
+		var responses []model.GetProductResponse
+		products := <-service.PR.FindAll()
+		for _, product := range products {
+			responses = append(responses, model.GetProductResponse{
+				Id:       product.Id,
+				Name:     product.Name,
+				Price:    product.Price,
+				Quantity: product.Quantity,
+			})
+		}
+		responsesCh <- responses
+		close(responsesCh)
+	}()
+
+	return responsesCh
 }

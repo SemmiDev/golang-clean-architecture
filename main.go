@@ -19,17 +19,8 @@ func main() {
 	database := config.NewMongoDatabase(cfg, "prod")
 
 	productRepository := repository.NewProductRepository(database)
-
-	productService := &service.ProductService{
-		Insert:    productRepository.Insert,
-		FindAll:   productRepository.FindAll,
-		DeleteAll: productRepository.DeleteAll,
-	}
-
-	productController := &controller.ProductController{
-		CreateProduct: productService.Create,
-		ListProducts:  productService.List,
-	}
+	productService := service.NewProductService(productRepository)
+	productController := controller.NewProductController(productService)
 
 	app := fiber.New(config.NewFiberConfig())
 	app.Use(recover.New())
@@ -37,6 +28,6 @@ func main() {
 
 	productController.Route(app)
 
-	err = app.Listen(":3030")
+	err = app.Listen(":8080")
 	exception.PanicIfNeeded(err)
 }

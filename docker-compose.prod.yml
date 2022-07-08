@@ -35,7 +35,7 @@ services:
       - golang-mongo
     deploy:
       mode: replicated
-      replicas: 15
+      replicas: 5
       restart_policy:
         condition: on-failure
     networks:
@@ -45,10 +45,25 @@ services:
     image: nginx:latest
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - "/etc/nginx/vhost.d"
+      - "/usr/share/nginx/html"
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+      - "/etc/nginx/certs"
     depends_on: 
       - api
     ports: 
       - "80:80"
+      - "443:443"
+    networks:
+      - myapp
+
+  letsencrypt-nginx-proxy-companion:
+    restart: always
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    volumes_from:
+      - "nginx"
     networks:
       - myapp
 

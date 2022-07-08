@@ -20,15 +20,8 @@ var configuration, _ = config.LoadConfig("../")
 
 var database = config.NewMongoDatabase(configuration, "test")
 var productRepository = repository.NewProductRepository(database)
-var productService = &service.ProductService{
-	Insert:    productRepository.Insert,
-	FindAll:   productRepository.FindAll,
-	DeleteAll: productRepository.DeleteAll,
-}
+var productService = &service.ProductServiceImpl{PR: productRepository}
 
-var productController = &ProductController{
-	CreateProduct: productService.Create,
-	ListProducts:  productService.List,
-}
+var productController = &ProductController{PS: productService}
 
 var app = createTestApp()

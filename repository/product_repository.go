@@ -9,14 +9,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func NewProductRepository(database *mongo.Database) *productRepositoryImpl {
-	return &productRepositoryImpl{
-		collection: database.Collection("products"),
-	}
+type ProductRepository interface {
+	Insert(product entity.Product)
+	FindAll() <-chan []entity.Product
+	DeleteAll()
 }
 
 type productRepositoryImpl struct {
 	collection *mongo.Collection
+}
+
+func NewProductRepository(database *mongo.Database) *productRepositoryImpl {
+	return &productRepositoryImpl{
+		collection: database.Collection("products"),
+	}
 }
 
 func (repository *productRepositoryImpl) Insert(product entity.Product) {
@@ -32,27 +38,35 @@ func (repository *productRepositoryImpl) Insert(product entity.Product) {
 	exception.PanicIfNeeded(err)
 }
 
-func (repository *productRepositoryImpl) FindAll() (products []entity.Product) {
-	ctx, cancel := config.NewMongoContext()
-	defer cancel()
+func (repository *productRepositoryImpl) FindAll() <-chan []entity.Product {
+	productsCh := make(chan []entity.Product)
 
-	cursor, err := repository.collection.Find(ctx, bson.M{})
-	exception.PanicIfNeeded(err)
+	go func() {
+		ctx, cancel := config.NewMongoContext()
+		defer cancel()
 
-	var documents []bson.M
-	err = cursor.All(ctx, &documents)
-	exception.PanicIfNeeded(err)
+		cursor, err := repository.collection.Find(ctx, bson.M{})
+		exception.PanicIfNeeded(err)
 
-	for _, document := range documents {
-		products = append(products, entity.Product{
-			Id:       document["_id"].(string),
-			Name:     document["name"].(string),
-			Price:    document["price"].(int64),
-			Quantity: document["quantity"].(int32),
-		})
-	}
+		var documents []bson.M
+		err = cursor.All(ctx, &documents)
+		exception.PanicIfNeeded(err)
 
-	return products
+		var products []entity.Product
+		for _, document := range documents {
+			products = append(products, entity.Product{
+				Id:       document["_id"].(string),
+				Name:     document["name"].(string),
+				Price:    document["price"].(int64),
+				Quantity: document["quantity"].(int32),
+			})
+		}
+
+		productsCh <- products
+		close(productsCh)
+	}()
+
+	return productsCh
 }
 
 func (repository *productRepositoryImpl) DeleteAll() {
