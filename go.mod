@@ -3,6 +3,7 @@ module golang-clean-architecture
 go 1.18
 
 require (
+	github.com/Rhymond/go-money v1.0.9
 	github.com/go-ozzo/ozzo-validation/v4 v4.2.2
 	github.com/gofiber/fiber/v2 v2.0.6
 	github.com/google/uuid v1.1.2

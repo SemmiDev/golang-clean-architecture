@@ -1,6 +1,8 @@
 package service
 
 import (
+	"github.com/Rhymond/go-money"
+	"github.com/google/uuid"
 	"golang-clean-architecture/entity"
 	"golang-clean-architecture/model"
 	"golang-clean-architecture/repository"
@@ -8,24 +10,27 @@ import (
 )
 
 type ProductServiceImpl struct {
-	PR repository.ProductRepository
+	productRepository repository.ProductRepository
 }
 
-func NewProductService(pr repository.ProductRepository) *ProductServiceImpl {
-	return &ProductServiceImpl{PR: pr}
+func NewProductService(productRepository repository.ProductRepository) *ProductServiceImpl {
+	return &ProductServiceImpl{productRepository: productRepository}
 }
 
 func (service *ProductServiceImpl) Create(request model.CreateProductRequest) (response model.CreateProductResponse) {
 	validation.Validate(request)
 
+	ID := uuid.New().String()
+	price := money.New(request.Price, money.IDR)
+
 	product := entity.Product{
-		Id:       request.Id,
+		Id:       ID,
 		Name:     request.Name,
-		Price:    request.Price,
+		Price:    price.Amount(),
 		Quantity: request.Quantity,
 	}
 
-	service.PR.Insert(product)
+	service.productRepository.Create(product)
 
 	response = model.CreateProductResponse{
 		Id:       product.Id,
@@ -37,11 +42,11 @@ func (service *ProductServiceImpl) Create(request model.CreateProductRequest) (r
 }
 
 func (service *ProductServiceImpl) List() <-chan []model.GetProductResponse {
-	responsesCh := make(chan []model.GetProductResponse)
+	responsesChannel := make(chan []model.GetProductResponse)
 
 	go func() {
 		var responses []model.GetProductResponse
-		products := <-service.PR.FindAll()
+		products := <-service.productRepository.FindAll()
 		for _, product := range products {
 			responses = append(responses, model.GetProductResponse{
 				Id:       product.Id,
@@ -50,9 +55,9 @@ func (service *ProductServiceImpl) List() <-chan []model.GetProductResponse {
 				Quantity: product.Quantity,
 			})
 		}
-		responsesCh <- responses
-		close(responsesCh)
+		responsesChannel <- responses
+		close(responsesChannel)
 	}()
 
-	return responsesCh
+	return responsesChannel
 }

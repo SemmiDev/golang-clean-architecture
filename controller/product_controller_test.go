@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"golang-clean-architecture/entity"
 	"golang-clean-architecture/model"
+	"io"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
@@ -29,7 +30,7 @@ func TestProductController_Create(t *testing.T) {
 	response, _ := app.Test(request)
 
 	assert.Equal(t, 200, response.StatusCode)
-	responseBody, _ := ioutil.ReadAll(response.Body)
+	responseBody, _ := io.ReadAll(response.Body)
 
 	webResponse := model.WebResponse{}
 	json.Unmarshal(responseBody, &webResponse)
@@ -53,7 +54,7 @@ func TestProductController_List(t *testing.T) {
 		Price:    1000,
 		Quantity: 1000,
 	}
-	productRepository.Insert(product)
+	productRepository.Create(product)
 
 	request := httptest.NewRequest("GET", "/api/products", nil)
 	request.Header.Set("Accept", "application/json")

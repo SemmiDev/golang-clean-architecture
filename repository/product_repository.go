@@ -10,9 +10,9 @@ import (
 )
 
 type ProductRepository interface {
-	Insert(product entity.Product)
-	FindAll() <-chan []entity.Product
-	DeleteAll()
+	Creator
+	Finder
+	Deleter
 }
 
 type productRepositoryImpl struct {
@@ -25,7 +25,7 @@ func NewProductRepository(database *mongo.Database) *productRepositoryImpl {
 	}
 }
 
-func (repository *productRepositoryImpl) Insert(product entity.Product) {
+func (repository *productRepositoryImpl) Create(product entity.Product) {
 	ctx, cancel := config.NewMongoContext()
 	defer cancel()
 

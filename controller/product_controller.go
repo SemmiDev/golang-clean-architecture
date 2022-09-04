@@ -4,17 +4,17 @@ import (
 	"golang-clean-architecture/exception"
 	"golang-clean-architecture/model"
 	"golang-clean-architecture/service"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 type ProductController struct {
-	PS *service.ProductServiceImpl
+	productService *service.ProductServiceImpl
 }
 
-func NewProductController(ps *service.ProductServiceImpl) *ProductController {
-	return &ProductController{PS: ps}
+func NewProductController(productService *service.ProductServiceImpl) *ProductController {
+	return &ProductController{productService: productService}
 }
 
 func (controller *ProductController) Route(app *fiber.App) {
@@ -27,19 +27,18 @@ func (controller *ProductController) Create(c *fiber.Ctx) error {
 	err := c.BodyParser(&request)
 	exception.PanicIfNeeded(err)
 
-	request.Id = uuid.New().String()
-	response := controller.PS.Create(request)
+	response := controller.productService.Create(request)
 	return c.JSON(model.WebResponse{
-		Code:   200,
-		Status: "OK",
+		Code:   http.StatusCreated,
+		Status: http.StatusText(http.StatusCreated),
 		Data:   response,
 	})
 }
 
 func (controller *ProductController) List(c *fiber.Ctx) error {
 	return c.JSON(model.WebResponse{
-		Code:   200,
-		Status: "OK",
-		Data:   <-controller.PS.List(),
+		Code:   http.StatusOK,
+		Status: http.StatusText(http.StatusOK),
+		Data:   <-controller.productService.List(),
 	})
 }
